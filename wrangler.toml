@@ -6,7 +6,6 @@ compatibility_date = "2025-08-01"
 # Static assets only — no build step required.
 [assets]
 directory = "./"
-binding = "ASSETS"
 not_found_handling = "404-page"
 
 # Uncomment to run the daily catalog crawler (see cron-worker/README.md):

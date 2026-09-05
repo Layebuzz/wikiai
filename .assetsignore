@@ -1,0 +1,12 @@
+# Files excluded from Cloudflare Workers static assets
+node_modules/
+.wrangler/
+.git/
+.freebuff/
+scripts/
+*.md
+package.json
+package-lock.json
+wrangler.toml
+.assetsignore
+.gitignore
