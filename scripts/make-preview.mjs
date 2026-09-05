@@ -9,6 +9,9 @@ const js = fs.readFileSync('main.js', 'utf8');
 const tools = JSON.parse(fs.readFileSync('data/tools.json', 'utf8')).slice(0, 60);
 const mcps = JSON.parse(fs.readFileSync('data/mcps.json', 'utf8'));
 const skills = JSON.parse(fs.readFileSync('data/skills.json', 'utf8'));
+// Optional live crawler additions (path to a fetched /data/custom.json).
+const customPath = process.argv[2];
+const custom = customPath && fs.existsSync(customPath) ? JSON.parse(fs.readFileSync(customPath, 'utf8')) : { tools: [], mcps: [], skills: [] };
 
 const stub = `
 <script>
@@ -17,6 +20,7 @@ const __DATA__ = {
   'data/tools.json': ${JSON.stringify(tools)},
   'data/mcps.json': ${JSON.stringify(mcps)},
   'data/skills.json': ${JSON.stringify(skills)},
+  'data/custom.json': ${JSON.stringify(custom)},
 };
 window.fetch = (url) => {
   if (__DATA__[url]) return Promise.resolve(new Response(JSON.stringify(__DATA__[url]), { status: 200, ok: true }));

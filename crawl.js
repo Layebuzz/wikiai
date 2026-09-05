@@ -221,7 +221,7 @@ function mcpsFromRepos(repos) {
       slug: r.name,
       url: r.html_url,
       short: clean(r.description, 120) || 'MCP server: ' + pretty(r.name),
-      description: desc || 'MCP server published on GitHub: ' + r.html_url,
+      description: desc || (pretty(r.name) + ' — MCP server on GitHub' + (r.language ? ' written in ' + r.language : '') + '. Open the repository for install and usage details.'),
       category: categorizeBankEntry('mcps', (r.description || '') + ' ' + (r.topics || []).join(' ') + ' ' + r.name, 'Developer Tools'),
       transports: [],
       auth: '',
@@ -337,7 +337,9 @@ function hnTools(hits) {
       features: [],
       lang_support: [],
       updated_at: todayUTC(new Date()),
-      description_en: clean(h.story_text || title, 400),
+      description_en:
+        clean(h.story_text, 400) ||
+        clean('Hacker News launch' + (h.author ? ' by ' + h.author : '') + (h.points || h.num_comments ? ' (' + [h.points ? h.points + ' points' : '', h.num_comments ? h.num_comments + ' comments' : ''].filter(Boolean).join(', ') + ')' : '') + '. Open the link to visit the product.', 400),
       trending: false,
       _src: 'hacker-news',
     });
@@ -409,13 +411,34 @@ async function sourceHn(fetchImpl) {
 
 /* ----- Enrichment: skim the README of a new GitHub repo to guess MCP details ----- */
 
-async function enrichMcpReadme(entry, fetchImpl) {
+/* Plain-text excerpt from a README head: images/code stripped, first ~300 chars.
+   Reuses the README already fetched for transport detection — no extra request. */
+function readmeExcerpt(text) {
+  return clean(
+    String(text || '')
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/^#+\s*.*$/gm, ' ')
+      .replace(/```[\s\S]*?```|`[^`]*`/g, ' ')
+      .replace(/[|>*~]/g, ' ')
+      .replace(/\s+/g, ' '),
+    300
+  );
+}
+
+export async function enrichMcpReadme(entry, fetchImpl) {
   const m = String(entry.url || '').match(/github\.com\/([^/]+)\/([^/#?]+)/);
   if (!m) return null;
   try {
     const res = await fetchText('https://raw.githubusercontent.com/' + m[1] + '/' + m[2] + '/HEAD/README.md', {}, fetchImpl);
     const text = (await res.text()).slice(0, 60000);
-    return detectTransport(text);
+    const det = detectTransport(text);
+    const excerpt = readmeExcerpt(text);
+    // Only replace a missing or auto-generated description with the README text.
+    if (excerpt && (!entry.description || /^MCP server on GitHub/.test(entry.description))) {
+      det.description = excerpt;
+    }
+    return det;
   } catch {
     return null;
   }
@@ -502,7 +525,7 @@ export async function runIngest(env, opts = {}) {
     for (const e of fresh) {
       if (enriched >= README_ENRICH) break;
       const det = await enrichMcpReadme(e, fetchImpl);
-      if (det && (det.transports.length || det.auth || det.install)) {
+      if (det && (det.transports.length || det.auth || det.install || det.description)) {
         Object.assign(e, det);
         enriched++;
       }
