@@ -85,6 +85,26 @@ function initials(name) {
   return parts.map((p) => p[0]).join('').toUpperCase() || '?';
 }
 
+/* Resolve a logo for an entry:
+   - explicit logo URL if present
+   - GitHub owner avatar for github.com/OWNER/... links
+   - site favicon via Google's favicon service, otherwise
+   The <img> removes itself on error, revealing the letter-avatar fallback. */
+function logoUrlFor(item) {
+  if (item.logo) return item.logo;
+  const url = item.url || '';
+  const gh = url.match(/github\.com\/([^/#?]+)/);
+  if (gh) return `https://github.com/${encodeURIComponent(gh[1])}.png`;
+  const host = hostnameOf(url);
+  return host ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128` : '';
+}
+
+function logoHtml(item) {
+  const src = logoUrlFor(item);
+  if (!src) return '';
+  return `<img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`;
+}
+
 function loadFavs() {
   try {
     return JSON.parse(localStorage.getItem('wikiai.favs')) || { tools: [], mcps: [], skills: [] };
@@ -271,7 +291,7 @@ function cardHtml(item) {
   return `
   <article class="card">
     <div class="card-top">
-      <div class="card-logo" aria-hidden="true">${esc(initials(item.name))}</div>
+      <div class="card-logo" aria-hidden="true">${esc(initials(item.name))}${logoHtml(item)}</div>
       <div class="card-title">
         <h3><a href="${esc(item.url || '#')}" target="_blank" rel="noopener">${esc(item.name)}</a></h3>
         <div class="sub">${esc(sub)}</div>
@@ -376,7 +396,7 @@ function openDetail(item) {
 
   content.innerHTML = `
     <div class="modal-head">
-      <div class="modal-logo" aria-hidden="true">${esc(initials(item.name))}</div>
+      <div class="modal-logo" aria-hidden="true">${esc(initials(item.name))}${logoHtml(item)}</div>
       <div>
         <h2>${esc(item.name)}</h2>
         <div class="modal-url">${esc(item.url ? hostnameOf(item.url) : '')}</div>

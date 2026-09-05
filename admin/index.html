@@ -18,6 +18,79 @@
     })();
   </script>
   <style>
+    /* Login gate */
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: var(--background);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 360px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 28px;
+      text-align: center;
+    }
+    .login-card img {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .login-card h2 {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    .login-card p {
+      font-size: 13px;
+      color: var(--foreground-muted);
+      margin: 0 0 16px;
+    }
+    .login-error {
+      color: var(--danger);
+      font-size: 12.5px;
+      margin-top: 10px;
+      min-height: 18px;
+    }
+    /* GitHub search results */
+    .search-result {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--separator-secondary);
+    }
+    .search-result:last-child {
+      border-bottom: none;
+    }
+    .search-result .sr-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .search-result .sr-info b {
+      font-size: 13.5px;
+    }
+    .search-result .sr-info span {
+      display: block;
+      font-size: 12px;
+      color: var(--foreground-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .search-result .sr-stars {
+      font-size: 12px;
+      color: var(--foreground-subtle);
+      white-space: nowrap;
+    }
     .admin-header {
       display: flex;
       align-items: center;
@@ -149,7 +222,18 @@
       </a>
       <div class="actions" style="margin-left:auto">
         <a class="btn btn-ghost btn-sm" href="../">← Back to site</a>
-        <a class="btn btn-ghost btn-sm" href="https://github.com/Layebuzz/wikiai" target="_blank" rel="noopener">Repo</a>
+      </div>
+    </div>
+
+    <!-- Login gate -->
+    <div id="login-overlay" class="login-overlay hidden">
+      <div class="login-card">
+        <img src="../favicon.svg" alt="WikiAI">
+        <h2>WikiAI Admin</h2>
+        <p>Enter the admin password to continue.</p>
+        <input id="login-password" type="password" placeholder="Password" autocomplete="current-password" style="text-align:center">
+        <div class="login-error" id="login-error"></div>
+        <button class="btn btn-accent" id="login-submit" style="width:100%">Unlock</button>
       </div>
     </div>
 
@@ -158,6 +242,20 @@
       <button class="btn btn-ghost btn-sm" data-bank="mcps">MCP Servers</button>
       <button class="btn btn-ghost btn-sm" data-bank="skills">Skills</button>
     </nav>
+
+    <div class="card-panel">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:4px">🔍 Search GitHub &amp; add new resources</h3>
+      <p class="muted" style="font-size:12.5px;margin:0 0 10px">
+        Searches GitHub for MCP servers / AI repositories and lets you add them to the current bank.
+        Unauthenticated GitHub API: ~10 searches/hour.
+      </p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="gh-query" placeholder="topic:mcp-server" style="flex:1;min-width:220px">
+        <button class="btn btn-accent btn-sm" id="gh-search">Search GitHub</button>
+        <button class="btn btn-ghost btn-sm" id="gh-add-all">Add all results</button>
+      </div>
+      <div id="gh-results" style="margin-top:10px"></div>
+    </div>
 
     <div class="row-count" id="row-count"></div>
 

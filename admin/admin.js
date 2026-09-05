@@ -359,7 +359,160 @@ function setBank(bank) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+/* ---------- Auth gate ---------- */
+const ADMIN_HASH = '87e94258ee2ec6497ee3ed1e74e4249764bd0ac42b226977f99c90802fedd09b'; // sha256 of the admin password
+const AUTH_FLAG = 'wikiai.admin.auth';
+
+async function sha256(s) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function tryLogin() {
+  const pass = $('#login-password').value;
+  if ((await sha256(pass)) === ADMIN_HASH) {
+    sessionStorage.setItem(AUTH_FLAG, '1');
+    $('#login-overlay').classList.add('hidden');
+    $('#login-error').textContent = '';
+    initAdmin();
+    return true;
+  }
+  $('#login-error').textContent = 'Wrong password';
+  return false;
+}
+
+function initAuth() {
+  const overlay = $('#login-overlay');
+  if (sessionStorage.getItem(AUTH_FLAG) === '1') {
+    overlay.classList.add('hidden');
+    return true;
+  }
+  overlay.classList.remove('hidden');
+  $('#login-submit').addEventListener('click', tryLogin);
+  $('#login-password').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') tryLogin();
+  });
+  return false;
+}
+
+/* ---------- GitHub search & add ---------- */
+let ghResults = [];
+
+function guessCategory(r) {
+  const text = ((r.description || '') + ' ' + (r.topics || []).join(' ')).toLowerCase();
+  if (/(database|postgres|sqlite|mysql|mongo|redis|vector|embedding|rag)/.test(text)) return 'Databases & Storage';
+  if (/(browser|playwright|puppeteer|scrap|selenium|automation)/.test(text)) return 'Browsing & Automation';
+  if (/(search|web|crawl)/.test(text)) return 'Search & Web';
+  if (/(slack|discord|telegram|whatsapp|email|gmail|mail|message)/.test(text)) return 'Communication';
+  if (/(cloud|aws|gcp|azure|deploy|kubernetes|docker|devops|infra)/.test(text)) return 'Cloud & DevOps';
+  if (/(observability|monitor|log|metric|trace|sentry|grafana|datadog)/.test(text)) return 'Observability';
+  if (/(todo|calendar|notes|task|productivity)/.test(text)) return 'Productivity';
+  if (/(design|image|figma|creative|photo|art)/.test(text)) return 'Design & Creative';
+  if (/(llm|agent|claude|openai|prompt|mcp|model)/.test(text)) return 'AI & ML';
+  return 'Developer Tools';
+}
+
+function ghToEntry(repo) {
+  const pretty = (s) =>
+    String(s || '')
+      .split(/[-_\s]+/)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  const base = {
+    id: `${state.bank}-gh-${repo.id}`,
+    name: pretty(repo.name),
+    slug: repo.name,
+    url: repo.html_url,
+    short: (repo.description || '').slice(0, 130),
+    description: repo.description || '',
+    tags: (repo.topics || []).slice(0, 6),
+    updated_at: (repo.pushed_at || '').slice(0, 10),
+    trending: false,
+  };
+  if (state.bank === 'mcps') {
+    base.category = guessCategory(repo);
+    base.transports = [];
+    base.auth = '';
+    base.publisher = repo.owner ? repo.owner.login : '';
+    base.official = false;
+    base.install = '';
+  } else if (state.bank === 'skills') {
+    base.category = guessCategory(repo);
+    base.difficulty = 'medium';
+    base.input = '';
+    base.output = '';
+    base.source = repo.full_name || '';
+  } else {
+    base.categories = [guessCategory(repo)];
+    base.pricing = 'unknown';
+  }
+  return base;
+}
+
+async function githubSearch() {
+  const q = $('#gh-query').value.trim() || 'topic:mcp-server';
+  const el = $('#gh-results');
+  el.innerHTML = '<p class="muted" style="font-size:13px">Searching GitHub…</p>';
+  try {
+    const res = await fetch(
+      `https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&per_page=15`,
+      { headers: { Accept: 'application/vnd.github+json' } }
+    );
+    if (!res.ok) throw new Error(String(res.status));
+    const data = await res.json();
+    ghResults = data.items || [];
+    renderGhResults();
+  } catch (e) {
+    el.innerHTML = `<p class="muted" style="font-size:13px">Search failed (${esc(e.message)}). Unauthenticated GitHub rate limit is ~10 searches/hour — try again later.</p>`;
+  }
+}
+
+function renderGhResults() {
+  const el = $('#gh-results');
+  if (!ghResults.length) {
+    el.innerHTML = '<p class="muted" style="font-size:13px">No results.</p>';
+    return;
+  }
+  const existing = new Set(merged().map((x) => x.url));
+  el.innerHTML = ghResults
+    .map((r) => {
+      const added = existing.has(r.html_url);
+      return `<div class="search-result">
+        <div class="sr-info"><b>${esc(r.full_name)}</b><span>${esc(r.description || '')}</span></div>
+        <span class="sr-stars">★ ${r.stargazers_count}</span>
+        <button class="btn btn-ghost btn-sm" data-action="gh-add" data-url="${esc(r.html_url)}" ${added ? 'disabled' : ''}>${added ? 'Added' : 'Add'}</button>
+      </div>`;
+    })
+    .join('');
+}
+
+function ghAdd(url) {
+  const repo = ghResults.find((r) => r.html_url === url);
+  if (!repo) return;
+  if (merged().some((x) => x.url === repo.html_url)) {
+    toast('Already in the bank');
+    renderGhResults();
+    return;
+  }
+  state.custom.push(ghToEntry(repo));
+  save();
+  renderTable();
+  renderGhResults();
+  toast(`Added ${repo.full_name}`);
+}
+
+function ghAddAll() {
+  const existing = new Set(merged().map((x) => x.url));
+  const fresh = ghResults.filter((r) => !existing.has(r.html_url));
+  fresh.forEach((r) => state.custom.push(ghToEntry(r)));
+  save();
+  renderTable();
+  renderGhResults();
+  toast(`Added ${fresh.length} repositories`);
+}
+
+/* ---------- Boot ---------- */
+function initAdmin() {
   document.querySelectorAll('[data-bank]').forEach((b) => b.addEventListener('click', () => setBank(b.dataset.bank)));
 
   $('#entry-form').addEventListener('submit', submitForm);
@@ -392,5 +545,20 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTable();
   });
 
+  // GitHub search & add
+  $('#gh-search').addEventListener('click', githubSearch);
+  $('#gh-query').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') githubSearch();
+  });
+  $('#gh-add-all').addEventListener('click', ghAddAll);
+  $('#gh-results').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action="gh-add"]');
+    if (btn && !btn.disabled) ghAdd(btn.dataset.url);
+  });
+
   setBank('tools');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!initAuth()) return; // locked until password is entered
 });

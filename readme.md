@@ -47,7 +47,9 @@ Config: `wrangler.toml` (worker name `wikiai`, static assets), `_headers`, `_red
 
 ## Adding entries
 
-The admin panel (`/admin/`) lets you browse and add entries locally, then **Export JSON** and commit it to the matching `data/*.json` file. Open a PR or push and redeploy.
+The admin panel (`/admin/`, password-protected) lets you browse and add entries locally — including a **Search GitHub** tool that finds MCP/AI repositories and adds them to the current bank — then **Export JSON** and commit it to the matching `data/*.json` file. Open a PR or push and redeploy.
+
+Note: the admin password is checked client-side (SHA-256) since the site is fully static; anyone with repo access can read `admin/admin.js`. For a hard gate, add a Worker that checks a secret server-side.
 
 ## Roadmap to "most comprehensive"
 

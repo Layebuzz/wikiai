@@ -45,14 +45,14 @@
   --separator-secondary: #ececef;
   --border: #e4e4e7;
 
-  /* Accent — HeroUI default violet (#7828C8 family) */
-  --accent: #7828c8;
-  --accent-hover: #6a1fb3;
-  --accent-pressed: #5b179d;
+  /* Accent — black */
+  --accent: #000000;
+  --accent-hover: #1f2937;
+  --accent-pressed: #374151;
   --accent-foreground: #ffffff;
-  --accent-soft: #f5effb;
-  --accent-soft-foreground: #4a1d87;
-  --accent-focus: rgba(120, 40, 200, 0.25);
+  --accent-soft: #f4f4f5;
+  --accent-soft-foreground: #11181c;
+  --accent-focus: rgba(0, 0, 0, 0.15);
 
   /* Semantic status colors (HeroUI defaults) */
   --success: #17c964;
@@ -98,13 +98,13 @@
   --separator-secondary: #212124;
   --border: #26262a;
 
-  --accent: #9353d3;
-  --accent-hover: #a566dd;
-  --accent-pressed: #b57be6;
-  --accent-foreground: #ffffff;
-  --accent-soft: rgba(147, 83, 211, 0.16);
-  --accent-soft-foreground: #d8baf2;
-  --accent-focus: rgba(147, 83, 211, 0.35);
+  --accent: #ffffff;
+  --accent-hover: #e4e4e7;
+  --accent-pressed: #d4d4d8;
+  --accent-foreground: #000000;
+  --accent-soft: rgba(255, 255, 255, 0.12);
+  --accent-soft-foreground: #f4f4f5;
+  --accent-focus: rgba(255, 255, 255, 0.3);
 
   --success: #30d46a;
   --success-soft: rgba(48, 212, 106, 0.14);
@@ -371,7 +371,7 @@ img {
   text-align: center;
   background:
     radial-gradient(600px 220px at 20% 0%, var(--accent-soft), transparent 70%),
-    radial-gradient(600px 220px at 80% 0%, var(--info-soft), transparent 70%);
+    radial-gradient(600px 220px at 80% 0%, var(--background-tertiary), transparent 70%);
 }
 
 .hero h1 {
@@ -381,11 +381,11 @@ img {
 }
 
 .hero h1 .grad {
-  background: linear-gradient(120deg, var(--accent), var(--info));
+  background: linear-gradient(120deg, var(--foreground), var(--foreground-muted));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  color: var(--accent);
+  color: var(--foreground);
 }
 
 .hero p {
