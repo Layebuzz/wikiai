@@ -52,6 +52,7 @@ const assertShape = (bank, list) => {
     } else {
       ok(Array.isArray(e.categories) && e.categories.length, `tools ${e.name} has categories[]`);
       ok(typeof e.category === 'undefined' || e.category == null, `tools ${e.name} has no single-category string`);
+      ok(e.name !== 'AI tool', `tools ${e.url} got the placeholder 'AI tool' as its name`);
     }
   }
 };

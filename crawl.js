@@ -301,6 +301,19 @@ function hfTools(models, kind) {
 
 const HN_JUNK_HOSTS = /(github\.com|youtube\.com|reddit\.com|twitter\.com|x\.com|medium\.com|substack\.com|news\.ycombinator\.com|huggingface\.co|producthunt\.com|linkedin\.com)/;
 
+/* Product name for an HN launch: the brand from the submission's own domain
+   (airlune.space -> AirLune). The title alone is unreliable — a naive strip of
+   "Show HN:" can swallow the whole string, so the title is only a fallback. */
+export function hnName(url, title) {
+  try {
+    const label = new URL(url).hostname.replace(/^www\./, '').split('.')[0].toLowerCase();
+    if (label.length > 1 && /[a-z]/.test(label) && /^[a-z0-9-]+$/.test(label)) return pretty(label);
+  } catch {
+    /* fall through to the title */
+  }
+  return pretty(String(title || '').trim().replace(/^(?:show|launch|ask)\s+hn\s*[:—-]\s*/i, '')) || 'AI tool';
+}
+
 function hnTools(hits) {
   const out = [];
   for (const h of hits || []) {
@@ -313,7 +326,7 @@ function hnTools(hits) {
     if (!aiLike && (h.points || 0) < 40) continue;
     out.push({
       id: 'tool-hn-' + String(h.objectID || '').replace(/[^a-z0-9]+/gi, '-').toLowerCase(),
-      name: pretty(title.replace(/\s*\|?\s*(Show HN|Launch HN)\s*\|?.*$/i, '')).slice(0, 60) || 'AI tool',
+      name: hnName(url, title).slice(0, 60) || 'AI tool',
       slug: urlKey(url).replace(/[^a-z0-9]+/gi, '-'),
       url,
       logo: '',
