@@ -4,6 +4,7 @@ import fs from 'node:fs';
 
 const html = fs.readFileSync('index.html', 'utf8');
 const css = fs.readFileSync('styles.css', 'utf8');
+const common = fs.readFileSync('common.js', 'utf8');
 const js = fs.readFileSync('main.js', 'utf8');
 const tools = JSON.parse(fs.readFileSync('data/tools.json', 'utf8')).slice(0, 60);
 const mcps = JSON.parse(fs.readFileSync('data/mcps.json', 'utf8'));
@@ -25,7 +26,7 @@ window.fetch = (url) => {
 
 const out = html
   .replace('<link rel="stylesheet" href="styles.css">', `<style>${css}</style>`)
-  .replace('<script src="main.js"></script>', `${stub}<script>${js}</script>`)
+  .replace('<script src="common.js"></script>\n  <script src="main.js"></script>', `${stub}<script>${common}</script><script>${js}</script>`)
   .replace('<link href="https://fonts.googleapis.com/css2?family=Public+Sans', '<link href="https://fonts.googleapis.com/css2?family=Public+Sans'); // keep fonts
 
 fs.writeFileSync('preview.html', out);

@@ -3,8 +3,6 @@
 
 'use strict';
 
-const $ = (s) => document.querySelector(s);
-
 const state = {
   bank: 'tools',
   seed: [],
@@ -174,22 +172,6 @@ function merged() {
   return [...ids].map((id) => byId.get(id)).filter(Boolean);
 }
 
-function slugify(s) {
-  return String(s || '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)+/g, '');
-}
-
-function toast(msg) {
-  const el = $('#toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => el.classList.remove('show'), 1600);
-}
-
 function renderTable() {
   const list = merged();
   const query = (state.q || '').toLowerCase();
@@ -220,15 +202,6 @@ function renderTable() {
     row.innerHTML = `<td colspan="5" class="muted" style="text-align:center;font-size:12px">Showing first 500 — narrow the search or export the full JSON.</td>`;
     $('#table-body').appendChild(row);
   }
-}
-
-function esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
 
 function resetForm() {

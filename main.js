@@ -10,7 +10,6 @@
 const state = {
   tab: 'tools',
   data: { tools: [], mcps: [], skills: [] },
-  loaded: 0,
   search: '',
   category: '',
   secondary: '',
@@ -49,58 +48,21 @@ const TAB_META = {
   },
 };
 
-/* ---------- Utilities ---------- */
-function $(sel) {
-  return document.querySelector(sel);
-}
-
-function esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function hostnameOf(url) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    return '';
-  }
-}
-
-function slugify(s) {
-  return String(s || '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)+/g, '');
-}
-
-function initials(name) {
-  const clean = String(name || '').replace(/[^\p{L}\p{N} ]/gu, '').trim();
-  const parts = clean.split(/\s+/).slice(0, 2);
-  return parts.map((p) => p[0]).join('').toUpperCase() || '?';
-}
-
-/* Resolve a logo for an entry:
-   - explicit logo URL if present
-   - GitHub owner avatar for github.com/OWNER/... links
-   - site favicon via Google's favicon service, otherwise
-   The <img> removes itself on error, revealing the letter-avatar fallback. */
-function logoUrlFor(item) {
-  if (item.logo) return item.logo;
-  const url = item.url || '';
-  const gh = url.match(/github\.com\/([^/#?]+)/);
-  if (gh) return `https://github.com/${encodeURIComponent(gh[1])}.png`;
-  const host = hostnameOf(url);
-  return host ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128` : '';
-}
-
+/* ---------- Logo rendering ---------- */
+/* Logo for an entry: explicit logo URL, GitHub owner avatar for
+   github.com/OWNER/... links, else the site favicon via Google's
+   service. The <img> removes itself on error, revealing the
+   letter-avatar fallback. */
 function logoHtml(item) {
-  const src = logoUrlFor(item);
+  let src = item.logo || '';
+  if (!src) {
+    const gh = (item.url || '').match(/github\.com\/([^/#?]+)/);
+    if (gh) src = `https://github.com/${encodeURIComponent(gh[1])}.png`;
+    else {
+      const host = hostnameOf(item.url);
+      if (host) src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128`;
+    }
+  }
   if (!src) return '';
   return `<img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`;
 }
@@ -127,16 +89,8 @@ function toggleFav(item) {
   if (i >= 0) list.splice(i, 1);
   else list.push(item.id);
   saveFavs();
-  renderGrid();
+  render();
   toast(i >= 0 ? 'Removed from favorites' : 'Added to favorites');
-}
-
-function toast(msg) {
-  const el = $('#toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => el.classList.remove('show'), 1600);
 }
 
 /* ---------- Data loading ---------- */
@@ -211,18 +165,11 @@ function applyFilters() {
   render();
 }
 
-function onSearchInput() {
-  state.search = $('#search-input').value;
-  state.page = 1;
-  render();
-}
-
 function onFilterChange() {
   state.category = $('#category-select').value;
   state.secondary = $('#secondary-select').value;
   state.sort = $('#sort-select').value;
-  state.page = 1;
-  render();
+  applyFilters();
 }
 
 function resetFilters() {
@@ -236,7 +183,7 @@ function resetFilters() {
   $('#secondary-select').value = '';
   $('#sort-select').value = 'relevance';
   updateFavButton();
-  render();
+  applyFilters();
 }
 
 /* ---------- Rendering ---------- */
@@ -477,8 +424,7 @@ function bindEvents() {
     clearTimeout(debounce);
     debounce = setTimeout(() => {
       state.search = e.target.value;
-      state.page = 1;
-      render();
+      applyFilters();
     }, 150);
   });
 
@@ -489,8 +435,7 @@ function bindEvents() {
   $('#favorite-toggle').addEventListener('click', () => {
     state.favOnly = !state.favOnly;
     updateFavButton();
-    state.page = 1;
-    render();
+    applyFilters();
   });
 
   $('#reset-filters').addEventListener('click', resetFilters);
