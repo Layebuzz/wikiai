@@ -18,7 +18,10 @@ http
   .createServer((req, res) => {
     let p = decodeURIComponent((req.url || '/').split('?')[0]);
     if (p === '/') p = '/index.html';
-    const file = path.join(process.cwd(), p);
+    let file = path.join(process.cwd(), p);
+    if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
+      file = path.join(file, 'index.html');
+    }
     if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
       res.end('404 Not Found');

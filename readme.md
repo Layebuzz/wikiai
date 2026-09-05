@@ -20,7 +20,7 @@ Every bank is a plain JSON array — the site is a static front-end with **no bu
 The UI implements the **HeroUI theme model** ([heroui.com/en/themes](https://heroui.com/en/themes?fontFamily=public-sans)):
 
 - **Type**: Public Sans (body + display), with IRANSansXV fallback for Persian text
-- **Tokens**: semantic CSS variables — `--accent` (HeroUI violet `#7828C8`), `--surface`, `--separator`, `--foreground`, status colors — in `styles.css`
+- **Tokens**: semantic CSS variables — `--accent` (black in light mode, white in dark), `--surface`, `--separator`, `--foreground`, status colors — in `styles.css`
 - **Shape**: 12px medium radius, pill tabs/chips, soft elevation shadows
 - **Themes**: light + dark (`data-theme="dark"`), persisted, respects OS preference
 
