@@ -81,5 +81,36 @@ for (const bank of ['mcps', 'skills', 'tools']) {
   ok(unique.size === custom2[bank].length, `${bank}: no intra-list duplicates`);
 }
 
+/* --- Scheduled-handler semantics (hermetic: every fetch fails) --- */
+{
+  const store2 = new Map();
+  const kv2 = { get: async (k) => (store2.has(k) ? store2.get(k) : null), put: async (k, v) => store2.set(k, v) };
+  const env2 = { KV: kv2, ASSETS: { fetch: async () => new Response('{}') } };
+  const netDown = async () => {
+    throw new Error('network down');
+  };
+  const DAY = '2026-09-08';
+
+  // A fresh day (meta from yesterday) must NOT skip: it runs the sources even
+  // though every one fails, and a zero-addition run must not half-write KV.
+  store2.set('meta', JSON.stringify({ lastDate: '2026-09-07' }));
+  const freshDay = await runIngest(env2, { now: DAY + 'T02:30:00Z', fetchImpl: netDown });
+  ok(!freshDay.skipped, `yesterday-meta fresh day proceeds (skipped=${!!freshDay.skipped})`);
+  ok(freshDay.date === DAY, 'fresh-day run reports today');
+  ok(freshDay.errors.length >= 5, `every failing source recorded (${freshDay.errors.length} errors)`);
+  ok(store2.has('custom') === false, 'zero-addition failure leaves KV unwritten (no partial state)');
+
+  // Same-day double fire must skip BEFORE touching any source.
+  store2.set('meta', JSON.stringify({ lastDate: DAY }));
+  const before = [...store2.entries()];
+  const again = await runIngest(env2, { now: DAY + 'T10:00:00Z', fetchImpl: netDown });
+  ok(again.skipped === true, 'same-day scheduled fire skips');
+  ok(JSON.stringify([...store2.entries()]) === JSON.stringify(before), 'skip leaves KV byte-identical');
+
+  // force:true overrides the same-day skip (manual trigger path).
+  const forced = await runIngest(env2, { now: DAY + 'T11:00:00Z', force: true, fetchImpl: netDown });
+  ok(!forced.skipped && store2.get('meta').includes(DAY), 'force re-runs and still writes consistent meta');
+}
+
 console.log(failures === 0 ? '\nCRAWLER-CHECK PASSED' : `\nCRAWLER-CHECK FAILED (${failures})`);
 process.exit(failures === 0 ? 0 : 1);
