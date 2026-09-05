@@ -1,0 +1,4 @@
+# Legacy API compatibility (v1 used /api/tools.json)
+/api/tools.json   /data/tools.json   200
+/api/mcps.json    /data/mcps.json    200
+/api/skills.json  /data/skills.json  200

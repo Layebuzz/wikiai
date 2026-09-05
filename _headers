@@ -1,0 +1,11 @@
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/data/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/*.json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400

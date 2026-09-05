@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WikiAI Admin</title>
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <script>
+    (function () {
+      var t = localStorage.getItem('wikiai.theme');
+      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+  <style>
+    .admin-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--separator);
+      margin-bottom: 20px;
+    }
+    .admin-main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+    .admin-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--foreground-subtle);
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--separator);
+      white-space: nowrap;
+    }
+    td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--separator-secondary);
+      vertical-align: top;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover td {
+      background: var(--background-secondary);
+    }
+    .row-count {
+      font-size: 13px;
+      color: var(--foreground-muted);
+      margin-bottom: 10px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 14px 0;
+    }
+    .form-grid .full {
+      grid-column: 1 / -1;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--foreground-muted);
+      margin-bottom: 4px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--field-border);
+      background: var(--field-bg);
+      color: var(--foreground);
+      font-family: inherit;
+      font-size: 13.5px;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--field-focus-ring);
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .danger {
+      color: var(--danger);
+    }
+    .card-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    code {
+      background: var(--surface-tertiary);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    pre {
+      background: var(--surface-tertiary);
+      border: 1px solid var(--separator);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      overflow-x: auto;
+      font-size: 12.5px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-main">
+    <div class="admin-header">
+      <a class="brand" href="../" style="color:var(--foreground)">
+        <img src="../favicon.png" alt="WikiAI">
+        <span class="brand-name">Wiki<span style="color:var(--accent)">AI</span> <span class="muted" style="font-size:13px;font-weight:500">Admin</span></span>
+      </a>
+      <div class="actions" style="margin-left:auto">
+        <a class="btn btn-ghost btn-sm" href="../">← Back to site</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/Layebuzz/wikiai" target="_blank" rel="noopener">Repo</a>
+      </div>
+    </div>
+
+    <nav class="admin-tabs">
+      <button class="btn btn-soft btn-sm" data-bank="tools">Tools</button>
+      <button class="btn btn-ghost btn-sm" data-bank="mcps">MCP Servers</button>
+      <button class="btn btn-ghost btn-sm" data-bank="skills">Skills</button>
+    </nav>
+
+    <div class="row-count" id="row-count"></div>
+
+    <div class="card-panel">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:4px" id="form-title">Add entry</h3>
+      <p class="muted" style="font-size:12.5px;margin:0">
+        Entries are saved to your browser (<code>wikiai.admin.&lt;bank&gt;</code>) and merge over the shipped seed data.
+        To publish changes, <strong>Export JSON</strong> and commit it to <code>data/&lt;bank&gt;.json</code> in the repo.
+      </p>
+      <form id="entry-form" class="form-grid">
+        <div class="full">
+          <label>Name *</label>
+          <input id="f-name" required>
+        </div>
+        <div>
+          <label>Slug</label>
+          <input id="f-slug">
+        </div>
+        <div>
+          <label>URL *</label>
+          <input id="f-url" required placeholder="https://…">
+        </div>
+        <div class="full">
+          <label>Short description</label>
+          <input id="f-short">
+        </div>
+        <div class="full">
+          <label>Description</label>
+          <textarea id="f-desc" rows="3"></textarea>
+        </div>
+        <div id="form-extra"></div>
+        <div class="full">
+          <label>Tags (comma separated)</label>
+          <input id="f-tags" placeholder="tag1, tag2">
+        </div>
+        <div class="full actions">
+          <button class="btn btn-accent" type="submit">Save</button>
+          <button class="btn btn-ghost" type="button" id="form-reset">New entry</button>
+          <span class="muted" id="edit-hint" style="font-size:12px"></span>
+        </div>
+      </form>
+    </div>
+
+    <div class="actions" style="margin-bottom:12px">
+      <button class="btn btn-ghost btn-sm" id="export-json">⬇ Export JSON</button>
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer">⬆ Import JSON
+        <input type="file" id="import-file" accept=".json" hidden>
+      </label>
+      <button class="btn btn-ghost btn-sm" id="copy-json">Copy JSON</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Badge</th>
+            <th>URL</th>
+            <th style="width:90px">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="admin.js"></script>
+</body>
+</html>

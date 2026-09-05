@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WikiAI — The Most Comprehensive AI Library: AI Tools, MCP Servers &amp; Agent Skills</title>
+  <meta name="description" content="WikiAI is the most comprehensive AI library on the internet — search thousands of AI tools, Model Context Protocol (MCP) servers, and agent skills in one catalog. Updated daily.">
+  <meta name="keywords" content="AI tools, MCP servers, agent skills, AI directory, Model Context Protocol, Claude skills, AI library, LLM tools">
+  <meta property="og:title" content="WikiAI — The Most Comprehensive AI Library">
+  <meta property="og:description" content="Thousands of AI tools, MCP servers, and agent skills — one searchable catalog.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wikiai.layebuzz.workers.dev/">
+  <meta name="theme-color" content="#7828C8">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Apply saved theme before first paint
+    (function () {
+      var t = localStorage.getItem('wikiai.theme');
+      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "WikiAI",
+    "url": "https://wikiai.layebuzz.workers.dev/",
+    "description": "The most comprehensive AI library: AI tools, MCP servers, and agent skills."
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="/" aria-label="WikiAI home">
+        <img src="favicon.png" alt="WikiAI logo">
+        <span class="brand-name">Wiki<span style="color:var(--accent)">AI</span></span>
+        <span class="brand-tagline muted" style="font-size:12px;margin-left:6px">Discover · Compare · Track</span>
+      </a>
+
+      <nav class="header-tabs" role="tablist" aria-label="Catalog sections">
+        <button role="tab" data-tab="tools" class="active" aria-selected="true">Tools <span class="count" id="tab-count-tools"></span></button>
+        <button role="tab" data-tab="mcps" aria-selected="false">MCP Servers <span class="count" id="tab-count-mcps"></span></button>
+        <button role="tab" data-tab="skills" aria-selected="false">Skills <span class="count" id="tab-count-skills"></span></button>
+      </nav>
+
+      <div class="header-actions">
+        <button id="theme-toggle" class="icon-btn" title="Toggle theme" aria-label="Toggle dark mode">
+          <svg id="icon-sun" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <svg id="icon-moon" class="hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <a class="icon-btn hide-sm" href="https://github.com/Layebuzz/wikiai" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub repository">
+          <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.76.11 3.05.73.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.66.41.36.78 1.06.78 2.14 0 1.55-.01 2.79-.01 3.17 0 .31.21.68.8.56A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+        </a>
+        <a class="btn btn-ghost btn-sm hide-sm" href="admin/" rel="nofollow">Admin</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1>The most comprehensive <span class="grad">AI library</span> on the internet</h1>
+      <p>AI tools, MCP servers, and agent skills — curated into one searchable catalog. Discover what runs the AI world.</p>
+      <div class="hero-stats" id="hero-stats"></div>
+    </div>
+  </section>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="container">
+      <div class="search-box">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="search-input" type="text" placeholder="Search tools, MCP servers, skills…" autocomplete="off">
+      </div>
+      <div class="select-wrap">
+        <select id="category-select" aria-label="Filter by category"><option value="">All categories</option></select>
+      </div>
+      <div class="select-wrap">
+        <select id="secondary-select" aria-label="Secondary filter"><option value="">All</option></select>
+      </div>
+      <div class="controls-right">
+        <button id="favorite-toggle" class="chip-btn" type="button">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21C7 16.5 2 13 2 8.5 2 5.5 4.5 3 7.5 3c1.7 0 3.3.8 4.5 2.2C13.2 3.8 14.8 3 16.5 3 19.5 3 22 5.5 22 8.5c0 4.5-5 8-10 12.5z"/></svg>
+          <span id="favorite-label">Favorites</span>
+        </button>
+        <div class="select-wrap">
+          <select id="sort-select" aria-label="Sort order">
+            <option value="relevance">Sort: Relevance</option>
+            <option value="newest">Sort: Newest</option>
+            <option value="name">Sort: A → Z</option>
+          </select>
+        </div>
+        <button id="reset-filters" class="btn btn-ghost btn-sm">Reset</button>
+      </div>
+      <div class="result-meta" id="result-meta"></div>
+    </div>
+  </div>
+
+  <!-- Catalog -->
+  <main class="container">
+    <div id="grid" class="grid"></div>
+    <div id="pagination" class="pagination"></div>
+    <div id="empty-state" class="empty hidden">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/></svg>
+      <h3>Nothing found</h3>
+      <p>Try a different search term or reset the filters.</p>
+      <button id="reset-button" class="btn btn-ghost">Reset filters</button>
+    </div>
+  </main>
+
+  <!-- Detail modal -->
+  <div id="detail-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button id="detail-close" class="modal-close" aria-label="Close">✕</button>
+      <div id="detail-content"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div>Created with love, hope &amp; fury by Ali Komeili · WikiAI v2</div>
+      <div style="display:flex;gap:16px">
+        <a href="https://github.com/Layebuzz/wikiai" target="_blank" rel="noopener">GitHub</a>
+        <a href="/api/tools.json" rel="nofollow">Tools API</a>
+        <a href="/api/mcps.json" rel="nofollow">MCPs API</a>
+        <a href="/api/skills.json" rel="nofollow">Skills API</a>
+        <a href="admin/" rel="nofollow">Admin</a>
+      </div>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="main.js"></script>
+</body>
+</html>
