@@ -10,3 +10,5 @@ package-lock.json
 wrangler.toml
 .assetsignore
 .gitignore
+worker.js
+crawl.js

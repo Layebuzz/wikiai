@@ -10,6 +10,7 @@
 const state = {
   tab: 'tools',
   data: { tools: [], mcps: [], skills: [] },
+  custom: { tools: [], mcps: [], skills: [] },
   search: '',
   category: '',
   secondary: '',
@@ -94,6 +95,50 @@ function toggleFav(item) {
 }
 
 /* ---------- Data loading ---------- */
+/* Merge key for an entry: normalized URL, falling back to id for URL-less rows. */
+function bankKeyOf(e) {
+  try {
+    const u = new URL(e.url);
+    return (u.hostname + u.pathname).replace(/^www\./, '').replace(/\/+$/, '').toLowerCase();
+  } catch {
+    return e.id || '';
+  }
+}
+
+/* Custom additions (daily crawler) override same-key seed rows and append the rest,
+   so the catalog stays deduped even after additions are committed to the seed file. */
+function withCustom(seed, custom) {
+  if (!custom || !custom.length) return seed;
+  const byKey = new Map(seed.map((e) => [bankKeyOf(e), e]));
+  const leftover = [];
+  for (const e of custom) {
+    const k = bankKeyOf(e);
+    if (byKey.has(k)) byKey.set(k, e);
+    else leftover.push(e);
+  }
+  return seed.map((e) => byKey.get(bankKeyOf(e))).concat(leftover);
+}
+
+/* Pull additions the daily crawler stored in KV (served by the Worker at
+   /data/custom.json). Static hosting without the Worker simply 404s — fine. */
+function loadCustom() {
+  fetch('data/custom.json')
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))))
+    .then((data) => {
+      state.custom = {
+        tools: data.tools || [],
+        mcps: data.mcps || [],
+        skills: data.skills || [],
+      };
+      for (const key of Object.keys(TAB_META)) {
+        if (state.data[key].length) state.data[key] = withCustom(state.data[key], state.custom[key]);
+      }
+      renderChrome();
+      applyFilters();
+    })
+    .catch(() => {});
+}
+
 function loadBank() {
   const key = TAB_META[state.tab].dataKey;
   if (state.data[key].length) {
@@ -107,8 +152,8 @@ function loadBank() {
       return r.json();
     })
     .then((data) => {
-      state.data[key] = data;
-      state.results = data;
+      state.data[key] = withCustom(data, state.custom[key]);
+      state.results = state.data[key];
       renderChrome();
       applyFilters();
     })
@@ -124,6 +169,7 @@ function matchesSearch(item, q) {
     item.name,
     item.short,
     item.description,
+    item.description_en,
     item.category,
     item.publisher,
     item.pricing,
@@ -350,7 +396,7 @@ function openDetail(item) {
       </div>
     </div>
     <div class="modal-body">
-      <p class="desc">${esc(item.description || item.short || '')}</p>
+      <p class="desc">${esc(item.description_en || item.description || item.short || '')}</p>
       <div class="meta-grid">${metaGrid}</div>
       ${item.categories && item.categories.length ? `<div class="modal-section"><h4>Categories</h4><div class="chips">${item.categories.map((c) => `<span class="badge badge-cat">${esc(c)}</span>`).join('')}</div></div>` : ''}
       ${chips ? `<div class="modal-section"><h4>Tags</h4><div class="chips">${chips}</div></div>` : ''}
@@ -480,5 +526,6 @@ function bindEvents() {
 document.addEventListener('DOMContentLoaded', () => {
   bindEvents();
   initTheme();
+  loadCustom();
   setTab('tools');
 });
