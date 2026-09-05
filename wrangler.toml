@@ -1,13 +1,19 @@
-# Cloudflare Workers configuration for WikiAI v2
+# WikiAI Workers configuration — static site + daily crawler (cron) + KV additions.
 # Deploy target: https://wikiai.layebuzz.workers.dev
 name = "wikiai"
+main = "worker.js"
 compatibility_date = "2025-08-01"
 
-# Static assets only — no build step required.
+# Morning crawl at 02:30 UTC (06:00 Tehran / 22:30 PDT previous day).
+[triggers]
+crons = ["30 2 * * *"]
+
+# Crawler persistence: additions, seen-URL history, run metadata.
+[[kv_namespaces]]
+binding = "KV"
+id = "9997571e33404bd5bb7a0ef088941b7b"
+
+# Static assets served by the same Worker.
 [assets]
 directory = "./"
 not_found_handling = "404-page"
-
-# Uncomment to run the daily catalog crawler (see cron-worker/README.md):
-# [[triggers]]
-# crons = ["0 5 * * *"]
